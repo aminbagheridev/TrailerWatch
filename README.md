@@ -16,7 +16,7 @@ MVVVM
 **Swift:** WKWebView, Programmatic UI (no storyboards), Image Caching, Protocol+Delegate Pattern, URL Session, Codable, JSON Parsing, Async / Sync Programming
 
 **UIKIT:**
-UICollectionView, UITableView, UINavigationViewController, UITabBarController
+UISearchController, UISearchResultsViewController, UICollectionView, UICollectionViewFlowLayout, UITableView, UINavigationViewController, UITabBarController
 
 ## TrailerWatch Demo
 ![Alt Text](https://github.com/bagheriamin/TrailerWatch/blob/main/Simulator%20Screen%20Recording%20-%20iPhone%2011%20-%202022-08-17%20at%2020.51.56.gif?raw=true)
