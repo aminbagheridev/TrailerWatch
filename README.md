@@ -11,12 +11,12 @@ An app perfect for all movie lovers around the globe, allowing you to watch trai
 UIKIT, CoreData, REST API, Webkit
 
 **Architecture:**
-MVVVM
+MVVM
 
 **Swift:** WKWebView, Programmatic UI (no storyboards), Image Caching, Protocol+Delegate Pattern, URL Session, Codable, JSON Parsing, Async / Sync Programming
 
 **UIKIT:**
-UISearchController, UISearchResultsViewController, UICollectionView, UICollectionViewFlowLayout, UITableView, UINavigationViewController, UITabBarController
+UICollectionView, UITableView, UINavigationViewController, UITabBarController
 
 ## TrailerWatch Demo
 ![Alt Text](https://github.com/bagheriamin/TrailerWatch/blob/main/Simulator%20Screen%20Recording%20-%20iPhone%2011%20-%202022-08-17%20at%2020.51.56.gif?raw=true)
@@ -81,87 +81,50 @@ items = (
 ![](https://github.com/bagheriamin/TrailerWatch/blob/main/carbon-11.png?raw=true)
 
 
-## Slide Up View Controller
+## Implementing Search Feature
 
-To create the settings view controller, I wanted to have a cool slide up animation, and so I didn't opt for the standard 'segue to a new view controller', which would have been the easy way out.
+To implement the search feature, I opted to use a UISearchController and UISearchViewController setup, as it allows for the greatest funcionality when it comes to search functionality. 
 
-![](https://github.com/bagheriamin/SimpleTacToe/blob/main/slideViewContrller.gif?raw=true)
+For example, with a SearchViewController, I can present a whole different view, rather than just refiltering with a regular SearchBar, as shown:
 
-In order to implement this feature, I did some digging and I found out I had to use Apples UIPresentationController. 
+![](https://github.com/bagheriamin/TrailerWatch/blob/main/Simulator%20Screen%20Recording%20-%20iPhone%2011%20-%202022-08-17%20at%2021.57.53.gif?raw=true)
 
-It is normally taken care of under the hood by apple, but as it says in the official apple documentation,
-if we would like to have ***custom*** view controller presentations, we would have to use a custom style like so:
-```
-viewController.modalPresentationStyle = .custom
-```
+To prevent API overload / to protect the API from getting too many requests, I prevented any searches from being made if the search bar was empty or if there was less than 3 characters of text, as shown. This is very important for lowering API Quota costs, especially in real production applications.
 
-![](https://github.com/bagheriamin/SimpleTacToe/blob/main/appleDocumentationOnUIPresentationViewController.png?raw=true)
-*Apple Official Documentation*
+![](https://github.com/bagheriamin/TrailerWatch/blob/main/carbon-12.png?raw=true)
 
-**Implementation Step One**
+## Implementing Video Feature
 
-First thing I did was create a custom Implementation of the UIPresentationController, which I configured to achieve the task at hand.
+Implementingthe video feature is very simple, as Apple has made playing videos extremely simple. Once I do a YouTube API GET Request from the search text entered by a user, I put together the pieces of the API Model and construct a youtube video embed url, as seen:
 
-Things such as the blur effect, the actual height of the view and rounded corners were all implemented via code.
-```
-class PresentationController: UIPresentationController {
-    \\ Insert custom code here
-    ...
-}
-```
-**Implementation Step Two**
-
-Then I created a XIB file, as seen below.
-
-![](https://github.com/bagheriamin/SimpleTacToe/blob/main/xib.png?raw=true)
-
-**Implementation Step Three**
-
-I then connected this XIB file to the actual class that manages the button switch and the *slide down to dismiss* feature. 
-
-**Implementation Final Step**
-
-Finally, now that I have a custom way to present a view controller (*UIPresentationController*), and I have actually created the View Controller i want to present, all I need to do is implement this extension to my main, Single Player View Controller class.
-
-![](https://github.com/bagheriamin/SimpleTacToe/blob/main/carbon-8.png?raw=true)
-
-So, the moment we've been waiting for. To present the OverlayViewController (*The VC with the Easy Mode switch*), this is what we must implement:
-
-![](https://github.com/bagheriamin/SimpleTacToe/blob/main/carbon-9.png?raw=true)
-
-We set the modal presentation style to custom, we set the extension delegate we made earlier to self, and then we presented the OverlayViewController. Simple!
+![](https://github.com/bagheriamin/TrailerWatch/blob/main/carbon-13.png?raw=true)
 
 
+Then, I simply use that url to load the YouTube video in the WKWebView(), as shown:
+
+![](https://github.com/bagheriamin/TrailerWatch/blob/main/carbon-14.png?raw=true)
+
+## Implementing Movie Save Feature
+
+The final feature I would like to talk about is the 'save' feature. While the app doesn't support the actual downloading of videos, it *does* support the ability to save titles to the device, so that we can easily access them and watch trailers as we wish. 
+
+I used **Core Data** to make this happen, and it was surprisingly simple to implement within the already existing codebase.
+
+**Core Data Step One**
+
+First, I created the *managed object model*, which maps directly to my previous Model for Trending Titles:
+![](https://github.com/bagheriamin/TrailerWatch/blob/main/Screen%20Shot%202022-08-17%20at%2010.21.28%20PM.png?raw=true)
 
 
+**Core Data Step Two**
 
+I then added the Core Data App Delegate required methods, which would have been added automatically had I began the application with Core Data in mind, but since I hadn't, I had to add the methods manually.
 
+**Core Data Step Three**
 
-## Local Multipeer Connectivity Explanation
+Now I had to setup my Core Data Manager class, where I would host all of the methods that would allow for easy access to the Persistent Container wherever I needed it.
 
-To implement the Local Multipeer Connectivity Framework, the real challenge was in making sure every device could only play when it was really their turns.
-
-Lets walk through how the whole process works.
-
-**Multipeer Part One**
-
-When a user presses the connect button in the nav bar, the user get's presented with the option to either **host** a game, or **join** a game. If **join** is pressed, the user is presented with the device finder screen, where they can join their freinds. If they press **host**, they start sending out their signal for others to find.
-
-![](https://github.com/bagheriamin/SimpleTacToe/blob/main/hostOrJoin.gif?raw=true)
-
-**Multipeer Part Two**
-
-Once two players are connected, I make sure that whenever the connected player (the device that joined) selects a square, it freezes his own screen and sends a signal through to the host, which causes his own screen to unfreeze.
-
-When the host selects a square, it causes his screen to refreeze, and then sends a signal to the joined player, unfreezing his screen, allowing him to play.
-
-Of course, after every button tap, the code that I've written goes through all the possible combinations of tictactoe wins (*and trust me, there's a LOT*), and then depending on who won (or didn't), either keeps the game playing or causes both players boards to freeze, displaying a *Player Won!* message.
-
-## Single player and multiplayer?
-
-Aside from the local multiplayer and the swipe up screen, the single player or 'same-device' multiplayer gamemodes aren't anything mind blowing. Just 9 buttons and a bunch of different if / else checks.
-
-Some cool things however were the fact that I built the entire UI with Autolayout, which did end up turning into Constraint hell, leading me to learn how to do programmatic UI's later on.
+The three methods I added were simple. The first allows me to save objects to Core Data, the C in CRUD. The second, allows me to retrieve a list of objects from core data, the R in CRUD. The final allows me to delete objects, the D in CRUD. Updating is not necassary as the movies are not user made objects and have fixed data.
 
 
 
@@ -169,4 +132,5 @@ Some cool things however were the fact that I built the entire UI with Autolayou
 
 Download the project via Code > Download as ZIP
 
-    
+If the SDWebImage package has not downloaded properly, here is the link to install it in the Swift Package Manager as a third-party dependency:
+https://github.com/SDWebImage/SDWebImage.git
